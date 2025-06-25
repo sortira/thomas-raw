@@ -14,24 +14,24 @@ st.set_page_config(page_title="Travel Planner with Gemini")
 @st.cache_resource
 def get_mode():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", default="dev", choices=["dev", "prod"], help="Run mode")
-    
-    # NOTE: Streamlit runs as `streamlit run script.py [args]`
-    # So manually parse from sys.argv beyond Streamlit's args
+    parser.add_argument("--mode", choices=["dev"], help="Run mode: 'dev' or leave empty for 'prod'")
+
+    # Parse args passed after 'streamlit run script.py'
     args, _ = parser.parse_known_args(sys.argv[1:])
-    return args.mode
+    
+    return "dev" if args.mode == "dev" else "prod"
 
 # --- Load API Key based on mode ---
 def get_api_key(mode):
-    if mode == "prod":
+    if mode == "dev":
+        with open("secret", "r") as f:
+            return f.read().strip()
+    else:  # prod
         if hasattr(st.secrets, "_file_path") and os.path.exists(st.secrets._file_path or ""):
             return st.secrets["API_KEY"]
         else:
             st.error("❌ Missing `.streamlit/secrets.toml` file in production mode!")
             st.stop()
-    else:
-        with open("secret", "r") as f:
-            return f.read().strip()
 
 # Get mode and key
 mode = get_mode()
