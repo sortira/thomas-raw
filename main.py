@@ -38,9 +38,9 @@ Make sure it's clear, practical, within 250 words and sounds like a helpful trav
 memory = ConversationBufferMemory()
 chain = LLMChain(llm=llm, prompt=prompt, memory=memory)
 
-# --- Streamlit UI ---
+
 st.set_page_config(page_title="Travel Planner with Gemini")
-st.title("🌍 AI Travel Planner")
+st.title("AI Travel Planner")
 
 st.markdown("Plan your next vacation using Google Gemini and LangChain!")
 
