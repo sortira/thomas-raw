@@ -8,7 +8,7 @@ from langchain.chains import LLMChain
 from langchain.memory import ConversationBufferMemory
 
 
-st.set_page_config(page_title="Travel Planner with Gemini")
+st.set_page_config(page_title="Thomas Raw")
 
 # --- Handle CLI args ---
 @st.cache_resource
@@ -63,7 +63,7 @@ memory = ConversationBufferMemory()
 chain = LLMChain(llm=llm, prompt=prompt, memory=memory)
 
 # --- Streamlit UI ---
-st.title("AI Travel Planner")
+st.title("Thomas Raw: Your Agentic AI Travel Planner")
 st.markdown("Plan your next vacation using Google Gemini and LangChain!")
 
 user_input = st.text_input("Where do you want to go or what do you want help with?", "")
