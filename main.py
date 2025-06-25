@@ -26,13 +26,8 @@ def get_api_key(mode):
     if mode == "dev":
         with open("secret", "r") as f:
             return f.read().strip()
-    else:  # prod
-        if hasattr(st.secrets, "_file_path") and os.path.exists(st.secrets._file_path or ""):
-            return st.secrets["API_KEY"]
-        else:
-            st.error("❌ Missing `.streamlit/secrets.toml` file in production mode!")
-            st.stop()
-
+    else:  
+        return st.secrets["API_KEY"]
 # Get mode and key
 mode = get_mode()
 api_key = get_api_key(mode)
