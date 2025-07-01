@@ -14,7 +14,6 @@ def get_mode():
     args, _ = parser.parse_known_args(sys.argv[1:])
     return "dev" if args.mode == "dev" else "prod"
 
-# --- Load Key ---
 def get_api_key(mode):
     if mode == "dev":
         with open("secret", "r") as f:
@@ -34,31 +33,55 @@ llm = ChatGoogleGenerativeAI(
 
 # --- Prompt Template ---
 prompt = PromptTemplate(
-    input_variables=["destination", "days", "style", "activities"],
+    input_variables=["destination", "days", "min_budget", "max_budget", "currency", "activities"],
     template="""
 You are a travel budgeting assistant. DO NOT USE LATEX ANYWHERE JUST USE MARKDOWN.
 
 Plan a travel budget for a trip to {destination} for {days} days.
-The user prefers a {style} travel experience.
+The user has a budget between {min_budget} and {max_budget} {currency}.
 Activities planned: {activities}.
 
 Keep the response brief apart from the table, there should not be more than 150 words.
 
 Output a table with the following format:
 
-| Category   | Estimated Cost (USD) |
-|------------|----------------------|
-| Flights    | $...                 |
-| Accommodation | $...              |
-| Food       | $...                 |
-| Activities | $...                 |
-| Transport  | $...                 |
-| Misc       | $...                 |
-| **Total**  | **$...**             |
+| Category   | Estimated Cost ({currency}) |
+|------------|-----------------------------|
+| Flights    | ...                         |
+| Accommodation | ...                      |
+| Food       | ...                         |
+| Activities | ...                         |
+| Transport  | ...                         |
+| Misc       | ...                         |
+| **Total**  | **...**                     |
 """
 )
 
 chain = LLMChain(llm=llm, prompt=prompt)
+
+# --- Currency Dropdown Options ---
+CURRENCY_OPTIONS = {
+    "USD": "US Dollar",
+    "EUR": "Euro",
+    "INR": "Indian Rupee",
+    "GBP": "British Pound",
+    "JPY": "Japanese Yen",
+    "CNY": "Chinese Yuan",
+    "AUD": "Australian Dollar",
+    "CAD": "Canadian Dollar",
+    "SGD": "Singapore Dollar",
+    "ZAR": "South African Rand",
+    "BRL": "Brazilian Real",
+    "KRW": "South Korean Won",
+    "CHF": "Swiss Franc",
+    "AED": "UAE Dirham",
+    "MXN": "Mexican Peso",
+    "THB": "Thai Baht",
+    "MYR": "Malaysian Ringgit",
+    "SEK": "Swedish Krona",
+    "NOK": "Norwegian Krone",
+    "NZD": "New Zealand Dollar"
+}
 
 # --- UI ---
 st.title("💰 Budget Builder")
@@ -66,7 +89,19 @@ st.markdown("Cash tight? Just let us know your destination, intentions, and dura
 
 destination = st.text_input("Destination (if multiple, separate them by commas)", "Bali")
 days = st.slider("Trip Duration (days)", 1, 30, 7)
-style = st.selectbox("Travel Style", ["Budget", "Mid-range", "Luxury"])
+
+col1, col2 = st.columns(2)
+with col1:
+    min_budget = st.number_input("Minimum Budget", min_value=0, value=500)
+with col2:
+    max_budget = st.number_input("Maximum Budget", min_value=0, value=1500)
+
+currency_code = st.selectbox(
+    "Select Your Currency",
+    options=list(CURRENCY_OPTIONS.keys()),
+    format_func=lambda code: f"{code} - {CURRENCY_OPTIONS[code]}"
+)
+
 activities = st.multiselect(
     "Planned Activities",
     ["Sightseeing", "Adventure Sports", "Food Tours", "Shopping", "Cultural Tours", "Relaxation"],
@@ -74,13 +109,19 @@ activities = st.multiselect(
 )
 
 if st.button("Generate Budget"):
-    with st.spinner("Crunching numbers..."):
-        response = chain.run({
-            "destination": destination,
-            "days": days,
-            "style": style,
-            "activities": ", ".join(activities)
-        })
-        st.session_state["budget_response"] = response
-    st.markdown("### 🧾 Estimated Budget")
-    st.markdown(response, unsafe_allow_html=True)
+    if min_budget > max_budget:
+        st.error("Minimum budget cannot be greater than maximum budget.")
+    else:
+        with st.spinner("Crunching numbers..."):
+            response = chain.run({
+                "destination": destination,
+                "days": days,
+                "min_budget": min_budget,
+                "max_budget": max_budget,
+                "currency": currency_code,
+                "activities": ", ".join(activities)
+            })
+            st.session_state["budget_response"] = response
+
+        st.markdown("### 🧾 Estimated Budget")
+        st.markdown(response, unsafe_allow_html=True)
