@@ -41,7 +41,7 @@ Plan a travel budget for a trip to {destination} for {days} days.
 The user has a budget between {min_budget} and {max_budget} {currency}.
 Activities planned: {activities}.
 
-Keep the response brief apart from the table, there should not be more than 150 words.
+For activities, mention activities. Mention places to visit. Mention the necessary details in brief.
 
 Output a table with the following format:
 
